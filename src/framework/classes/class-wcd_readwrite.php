@@ -138,7 +138,7 @@ class WCD_Readwrite {
 			}
 		}
 
-		return $tmp;
+		return $success;
 	}
 
 	/**
