@@ -273,6 +273,8 @@ namespace Niteo\WooCart\Defaults\Importers {
 		 * @param string $file_path
 		 */
 		public function add_products( $file_path ) {
+			$faker = \Mockery::mock();
+
 			$this->file_path = $file_path;
 
 			$contents = file_get_contents( $this->file_path );
@@ -286,6 +288,9 @@ namespace Niteo\WooCart\Defaults\Importers {
 					$data['gallery'] = $images;
 				}
 
+				// Start with an empty array for `category_ids`
+				$data['category_ids'] = [];
+
 				// Ensure that `category` is set
 				if ( isset( $data['category'] ) ) {
 					// Check for terms and create one if it doesn't exist.
@@ -297,12 +302,8 @@ namespace Niteo\WooCart\Defaults\Importers {
 
 					// Add `category_id` to $data if we get a value, else pass an empty array.
 					if ( $term && is_array( $term ) ) {
-						$data['category_ids'] = [ $term['term_id'] ];
-					} else {
-						$data['category_ids'] = [];
+						$data['category_ids'] = [ (int)$term['term_id'] ];
 					}
-				} else {
-					$data['category_ids'] = [];
 				}
 
 				$product = $this->create_simple_product( $data );
