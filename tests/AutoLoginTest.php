@@ -63,11 +63,11 @@ class AutoLoginTest extends TestCase
 
         $mock = \Mockery::mock('Niteo\WooCart\Defaults\AutoLogin')->makePartial();
         $mock->shouldReceive( 'validate_jwt_token' )
-            ->with( 'foo_jwt_auth_token', 'secret' )
+            ->with( 'foo_jwt_auth_token', 'sharedSecret' )
             ->once()
             ->andReturn(true);
         $mock->shouldReceive( 'validate_jwt_token' )
-            ->with( 'foo_invalid_jwt_auth_token', 'secret' )
+            ->with( 'foo_invalid_jwt_auth_token', 'sharedSecret' )
             ->once()
             ->andReturn(false);
         $mock->shouldReceive( 'auto_login' )->once();
@@ -83,7 +83,7 @@ class AutoLoginTest extends TestCase
 
         define(
             'WOOCART_LOGIN_SHARED_SECRET_PATH',
-            dirname(__FILE__) . '/fixtures/woocart_login_shared_secret'
+            dirname(__FILE__) . '/fixtures/loginSharedSecret'
         );
         // everything is ok, login user and redirect to admin
         $mock->test_for_auto_login();
@@ -133,24 +133,24 @@ class AutoLoginTest extends TestCase
         $login = new AutoLogin();
 
         // valid token without time limit
-        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjJ9.ygbbkdw2ZRJSTyNSL5o8fKNLngAIQTkGsDCM8g6sGrg';
-        $result = $login->validate_jwt_token($token, 'secret');
+        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjJ9.3-LrEOL2cAHF0j1pmTKdb2852Uptw0B9a8hUyqNS260';
+        $result = $login->validate_jwt_token($token, 'sharedSecret');
         $this->assertTrue($result);
         // valid token with expired time limit
-        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyMzkwMjJ9.7BbIenT4-HobiMHaMUQdNcJ6lD_QQkKnImP9IprJFvU';
-        $result = $login->validate_jwt_token($token, 'secret');
+        $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MTYyMzkwMjJ9.pMTj03W8rgsg97tJ298dDQLxnjikp8rOeP2J8m6dC3A';
+        $result = $login->validate_jwt_token($token, 'sharedSecret');
         $this->assertFalse($result);
         // valid token with wrong secret
         $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjJ9.UTLxY2zcznIFA42CIYV4iVWLEQhIrJyQ8I5eyZ_VpT8';
-        $result = $login->validate_jwt_token($token, 'secret');
+        $result = $login->validate_jwt_token($token, 'sharedSecret');
         $this->assertFalse($result);
         // invalid token
         $token = '2.2.2';
-        $result = $login->validate_jwt_token($token, 'secret');
+        $result = $login->validate_jwt_token($token, 'sharedSecret');
         $this->assertFalse($result);
         // invalid token
         $token = '2';
-        $result = $login->validate_jwt_token($token, 'secret');
+        $result = $login->validate_jwt_token($token, 'sharedSecret');
         $this->assertFalse($result);
     }
 }
