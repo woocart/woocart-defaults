@@ -45,8 +45,8 @@ class AutoLoginTest extends TestCase
     {
         \WP_Mock::userFunction(
             'is_user_logged_in', array(
-                'return_in_order'  => [ true, false, false, ],
-                'times'   => 3,
+                'return_in_order'  => [ true, false, false, false, ],
+                'times'            => 4,
             )
         );
         \WP_Mock::userFunction(
@@ -66,11 +66,15 @@ class AutoLoginTest extends TestCase
             ->with( 'foo_jwt_auth_token', 'secret' )
             ->once()
             ->andReturn(true);
+        $mock->shouldReceive( 'validate_jwt_token' )
+            ->with( 'foo_invalid_jwt_auth_token', 'secret' )
+            ->once()
+            ->andReturn(false);
         $mock->shouldReceive( 'auto_login' )->once();
 
         $_GET['auth'] = 'foo_jwt_auth_token';
 
-        // user is logged in
+        // user is logged in, redirect to admin
         $mock->test_for_auto_login();
 
         // user is not logged in but WOOCART_LOGIN_SHARED_SECRET_PATH is not
@@ -81,6 +85,11 @@ class AutoLoginTest extends TestCase
             'WOOCART_LOGIN_SHARED_SECRET_PATH',
             dirname(__FILE__) . '/fixtures/woocart_login_shared_secret'
         );
+        // everything is ok, login user and redirect to admin
+        $mock->test_for_auto_login();
+
+        $_GET['auth'] = 'foo_invalid_jwt_auth_token';
+        // invalid jwt token
         $mock->test_for_auto_login();
     }
 
