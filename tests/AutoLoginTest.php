@@ -31,7 +31,7 @@ class AutoLoginTest extends TestCase
     public function testConstructor()
     {
         $login = new AutoLogin();
-        \WP_Mock::expectActionAdded( 'init', [ $login, 'test_for_auto_login' ] );
+        \WP_Mock::expectActionAdded( 'login_header', [ $login, 'test_for_auto_login' ] );
 
         $login->__construct();
 

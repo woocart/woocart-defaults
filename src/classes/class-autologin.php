@@ -19,7 +19,7 @@ namespace Niteo\WooCart\Defaults {
          */
         function __construct() {
             if ( is_blog_installed() ) { // only run login functions on installed blog
-                add_action( 'init', array(&$this, 'test_for_auto_login') );
+                add_action( 'login_header', array(&$this, 'test_for_auto_login') );
             }
         }
 
