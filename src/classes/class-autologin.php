@@ -20,22 +20,6 @@ namespace Niteo\WooCart\Defaults {
         function __construct() {
             if ( is_blog_installed() ) { // only run login functions on installed blog
                 add_action( 'init', array(&$this, 'test_for_auto_login') );
-                add_action( 'init', array(&$this, 'fix_login_auth'), ~PHP_INT_MAX );
-            }
-        }
-
-        /**
-         * Handle redirection to www without loosing auth parameter.
-         */
-        function fix_login_auth(): void {
-            if (
-                isset( $_GET['auth'] ) && // contains auth
-                ( strpos( get_home_url(), 'www.' ) !== false ) && // site uses www subdomain
-                !( strpos( $_SERVER['SERVER_NAME'], 'www.' ) !== false ) // current hostname is not www
-            ) {
-                $url = get_home_url() . "/wp-login.php?auth=" . $_GET['auth'];
-                wp_redirect( $url . '&rewww=' . microtime() );
-                exit();
             }
         }
 
@@ -75,14 +59,14 @@ namespace Niteo\WooCart\Defaults {
             if ( isset($_GET['auth']) ) {
                 if ( is_user_logged_in() ) {
                     wp_redirect( get_admin_url() . '?reloggedin=' . microtime() ); //always redirect to public page
-                    exit;
-                } else {
+                    return;
+                } elseif ( defined( 'WOOCART_LOGIN_SHARED_SECRET_PATH' ) ) {
                     $auth = $_GET['auth'];
-                    $secret = 'secret'; // TODO: update with loginSharedSecret
+                    $secret = trim( file_get_contents( WOOCART_LOGIN_SHARED_SECRET_PATH ) );
                     if ( $this->validate_jwt_token( $auth, $secret ) ) { //used by dashboard login
                         $this->auto_login();
                         wp_redirect( get_admin_url() . '?limited=' . microtime() ); //always redirect to admin page
-                        exit;
+                        return;
                     } else {
                         return;
                     }

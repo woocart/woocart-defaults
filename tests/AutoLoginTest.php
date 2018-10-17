@@ -32,34 +32,9 @@ class AutoLoginTest extends TestCase
     {
         $login = new AutoLogin();
         \WP_Mock::expectActionAdded( 'init', [ $login, 'test_for_auto_login' ] );
-        \WP_Mock::expectActionAdded( 'init', [ $login, 'fix_login_auth' ], ~PHP_INT_MAX );
 
         $login->__construct();
 
-    }
-
-    /**
-     * @covers \Niteo\WooCart\Defaults\AutoLogin::__construct
-     * @covers \Niteo\WooCart\Defaults\AutoLogin::fix_login_auth
-     */
-    public function testFix_login_auth()
-    {
-        \WP_Mock::userFunction(
-            'get_home_url', array(
-                'return'    => 'www.store.com',
-                'times'     => 2,
-            )
-        );
-        \WP_Mock::userFunction(
-            'wp_redirect', array(
-                'times' => 1,
-            )
-        );
-        $_GET['auth'] = 'foo_jwt_auth_token';
-        $_SERVER['SERVER_NAME'] = 'store.com';
-        $login = new AutoLogin();
-        $login->fix_login_auth();
-        // unset($_SERVER['SERVER_NAME']);
     }
 
     /**
@@ -70,8 +45,8 @@ class AutoLoginTest extends TestCase
     {
         \WP_Mock::userFunction(
             'is_user_logged_in', array(
-                'return'  => [ true, false, ],
-                'times'   => 2,
+                'return_in_order'  => [ true, false, false, ],
+                'times'   => 3,
             )
         );
         \WP_Mock::userFunction(
@@ -86,7 +61,7 @@ class AutoLoginTest extends TestCase
             )
         );
 
-        $mock = \Mockery::mock('Niteo\WooCart\Defaults\AutoLogin[auto_login,validate_jwt_token]');
+        $mock = \Mockery::mock('Niteo\WooCart\Defaults\AutoLogin')->makePartial();
         $mock->shouldReceive( 'validate_jwt_token' )
             ->with( 'foo_jwt_auth_token', 'secret' )
             ->once()
@@ -95,8 +70,18 @@ class AutoLoginTest extends TestCase
 
         $_GET['auth'] = 'foo_jwt_auth_token';
 
-        $login = new AutoLogin();
-        $login->test_for_auto_login();
+        // user is logged in
+        $mock->test_for_auto_login();
+
+        // user is not logged in but WOOCART_LOGIN_SHARED_SECRET_PATH is not
+        // defined
+        $mock->test_for_auto_login();
+
+        define(
+            'WOOCART_LOGIN_SHARED_SECRET_PATH',
+            dirname(__FILE__) . '/fixtures/woocart_login_shared_secret'
+        );
+        $mock->test_for_auto_login();
     }
 
     /**
